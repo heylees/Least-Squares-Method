@@ -1,0 +1,86 @@
+# -*- coding: utf-8 -*-
+"""
+author:leehongbo
+探索密度和甜度的关系。开始吧！
+"""
+import numpy as np
+from sympy import *
+import math
+import matplotlib.pyplot as plt
+from pylab import mpl 
+x = []
+y = []
+f_x = []
+a = []
+plt.figure(1)
+plt.figure(2)
+#读取数据 密度&甜度
+with open("G:/data.txt","r") as f:
+    readlines = f.readlines()
+#求最小二乘法的k and b
+#即：残差平方和最小，偏导数找到极值点
+def k_and_b():
+    n = 0
+    for line in readlines:
+        line = line.rstrip('\n').split(',')
+        x.append(float(line[0])*10)
+        y.append(float(line[1])*10)
+        n += 1       
+    xs = np.array(x)
+    ys = np.array(y)
+    mx = mx2 = my = mxy = 0
+#偏导公式推导
+    for i in range(n):
+        m_x2_sum = pow(xs[i],2) + mx2
+        mx2 = m_x2_sum
+
+        m_x_sum = xs[i] + mx
+        mx = m_x_sum
+
+        m_y_sum = ys[i] + my
+        my = m_y_sum
+
+        m_xy_sum = xs[i] * ys[i] + mxy
+        mxy = m_xy_sum
+    #计算k，b分量偏导数极值结果
+    k = (n * m_xy_sum - m_x_sum * m_y_sum) / (n * m_x2_sum - pow(m_x_sum,2))
+    b = (m_x2_sum * m_y_sum - m_x_sum * m_xy_sum) / (n * m_x2_sum - pow(m_x_sum,2))
+    #绘制原始数据每个点
+    plt.figure(1)
+    mpl.rcParams['font.sans-serif'] = ['SimHei']
+    plt.xlabel('密度')  
+    plt.ylabel('甜度')  
+    plt.title('原始数据图')
+    xN=np.arange(0,10,0.1)
+    y_b = k * xN + b
+    plt.plot(xN,y_b)
+    for i in range(n):
+        plt.plot(xs[i],ys[i],'o')
+    return k, b
+
+#sgn函数二分归类******近似为：y = 1/(1+e**(x))
+def sgn():
+    plt.figure(2)
+    mpl.rcParams['font.sans-serif'] = ['SimHei']
+    plt.xlabel('')  
+    plt.ylabel('活动频数')  
+    plt.title('sgn函数曲线')
+    xq=np.arange(0,100,0.01)
+    res = 1 / (1 + np.exp(-(kb[0] * xq + kb[1]) * 1.0))
+    plt.plot(xq,res)
+    plt.annotate(u'test point', xy=(nest, kb[0] * nest + kb[1]), xytext=(nest, kb[0] * nest + kb[1]),
+            arrowprops=dict(facecolor='black', shrink=0.05),
+            )
+kb = k_and_b()
+
+#nest = float(input('输入预测变量：'))
+#自己输入就行，主要看数据，测试就不输入了=.=
+nest = 70
+sgn()
+#xN=np.arange(0,5,0.1)
+y_star = kb[0] * nest + kb[1]
+#plt.plot(xN,y_star)
+result = 1 / (1 + math.exp(-y_star * 1.0))
+#y_star = kb[0] * xN + kb[1]
+plt.plot(y_star,result,'o')
+plt.show()
